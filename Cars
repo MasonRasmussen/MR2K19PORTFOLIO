@@ -1,1 +1,55 @@
+Car myCar;
+Car[] myCars = new Car[200];
 
+void setup() {
+  size(800, 800);
+  myCar = new Car(color(random(255), random(255), random(255)), random(width), random(height), random(-10, 10));
+  for (int i=0; i<myCars.length; i++) {
+    myCars[i] = new Car(color(random(255), random(255), random(255)), random(width), random(height), random(-10, 10));
+  }
+}
+
+void draw() {
+  background(120);
+  myCar.display();
+  myCar.drive();
+  for (int i=0; i<myCars.length; i++) {
+    myCars[i].display(); 
+    myCars[i].drive(); 
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class Car {
+  // Member variables
+  color c;
+  float xpos, ypos, xspeed;
+  // Constructor
+  Car(color c, float xpos, float ypos, float xspeed) {
+    this.c = c;
+    this.xpos = xpos;
+    this.ypos = ypos;
+    this.xspeed = xspeed;
+  }
+
+
+  // Methods for behavior
+  void display() {
+    rectMode(CENTER);
+    fill(0);
+    rect(xpos-8, ypos, 5, 14);
+    rect(xpos+10, ypos, 5, 14);
+    fill(c);
+    rect(xpos, ypos, 20, 10);
+    rect(xpos, ypos, 8, 10);
+  }
+
+  void drive() {
+    xpos = xpos + xspeed;
+    if (xpos > width) {
+      xpos = 0;
+  } else if (xpos<0){
+        xpos = width;
+    }
+  }
+}
