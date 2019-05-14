@@ -1,1 +1,38 @@
+// Currency Converter
+// Mason Rasmussen| October 4, 2018
 
+void setup() {
+  size(600, 400);
+}
+
+void draw() {
+  background(255);
+  fill(0);
+
+  for (int i=0; i<width; i+=20) {
+    line(i, 30, i, 40);
+    textSize(8);
+    text(i, i, 20);
+  }
+ textSize(20);
+  text("Usd:" + mouseX + " = Eu: " + UsdToEu(mouseX), 10, 65);
+   fill(10,0,230);
+  rect(0, 35, mouseX, 10);
+  println(UsdToEu(10));
+  println(EuToUsd(10));
+  //noLoop();
+  fill(0);
+  text("Dollars to Euros",10,200);
+  text("Currency Converter \n by Mason Rasmussen",300,200);
+  textSize(8);
+  text("*Drag mouse across the screen \n horizontally for bar \n to move",10,300);
+}
+float UsdToEu(float Usd) {
+  Usd = (Usd*0.87);
+  return Usd;
+}
+
+float EuToUsd(float Eu) {
+  Eu = (Eu/0.87);
+  return Eu;
+}
