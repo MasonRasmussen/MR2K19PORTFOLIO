@@ -1,1 +1,309 @@
+Button[] numBtns = new Button[10];
+Button[] opBtns = new Button[13];
+String displayVal, leftVal, rightVal;
+char opVal;
+float result;
+boolean firstNum, dec;
 
+
+void setup() {
+  size(480, 550);
+  numBtns[0] = new Button(60, 509, 88, 47, color(#E3C800), color(0)).asNumber(0);
+  numBtns[1] = new Button(60, 437, 88, 47, color(#E3C800), color(0)).asNumber(1);
+  numBtns[2] = new Button(180, 437, 88, 47, color(#E3C800), color(0)).asNumber(2);
+  numBtns[3] = new Button(300, 437, 88, 47, color(#E3C800), color(0)).asNumber(3);
+  numBtns[4] = new Button(60, 361, 88, 47, color(#E3C800), color(0)).asNumber(4);
+  numBtns[5] = new Button(180, 361, 88, 47, color(#E3C800), color(0)).asNumber(5);
+  numBtns[6] = new Button(300, 361, 88, 47, color(#E3C800), color(0)).asNumber(6);
+  numBtns[7] = new Button(60, 286, 88, 47, color(#E3C800), color(0)).asNumber(7);
+  numBtns[8] = new Button(180, 286, 88, 47, color(#E3C800), color(0)).asNumber(8);
+  numBtns[9] = new Button(300, 286, 88, 47, color(#E3C800), color(0)).asNumber(9);
+
+  opBtns[0] = new Button(180, 509, 88, 47, color(#6A00FF), color(0)).asOperator(".");
+  opBtns[1] = new Button(300, 509, 88, 47, color(#6A00FF), color(0)).asOperator("±");
+  opBtns[2] = new Button(420, 509, 88, 47, color(#6A00FF), color(0)).asOperator("=");
+  opBtns[3] = new Button(420, 437, 88, 47, color(#6A00FF), color(0)).asOperator("-");
+  opBtns[4] = new Button(420, 361, 88, 47, color(#6A00FF), color(0)).asOperator("+");
+  opBtns[5] = new Button(420, 286, 88, 47, color(#6A00FF), color(0)).asOperator("÷");
+  opBtns[6] = new Button(420, 211, 88, 47, color(#6A00FF), color(0)).asOperator("x");
+  opBtns[7] = new Button(60, 211, 88, 47, color(#008A00), color(0)).asOperator("On/Off");
+  opBtns[8] = new Button(180, 211, 88, 47, color(#008A00), color(0)).asOperator("Clear");
+  opBtns[9] = new Button(300, 211, 88, 47, color(#008A00), color(0)).asOperator("⌉");
+  opBtns[10] = new Button(60, 140, 88, 47, color(#008A00), color(0)).asOperator("|");
+  opBtns[11] = new Button(180, 140, 88, 47, color(#008A00), color(0)).asOperator("^");
+  opBtns[12] = new Button(360, 140, 208, 47, color(#008A00), color(0)).asOperator("√");
+
+  displayVal = "";
+  leftVal = "";
+  rightVal = "";
+  opVal  = ' ';
+  result = 0.0;
+  firstNum = true;
+  dec = false;
+}
+
+void draw() {
+  background(#FF3333);
+  for (int i=0; i<numBtns.length; i++) {
+    numBtns[i].display();
+    numBtns[i].hover();
+  }
+  for (int i=0; i<opBtns.length; i++) {
+    opBtns[i].display();
+    opBtns[i].hover();
+  }
+  updateDisplay();
+}
+
+
+void updateDisplay() {
+  rect(240, 55, 425, 100);
+  textAlign(RIGHT);
+  fill(255);
+  text(displayVal, 400, 35);
+}
+
+void mouseReleased() {
+  for (int i=0; i<numBtns.length; i++) {
+    if (numBtns[i].hov) {
+      if (firstNum) {
+        leftVal += str(numBtns[i].v);
+        displayVal = leftVal;
+      } else {
+        rightVal += str(numBtns[i].v);
+        displayVal = rightVal;
+      }
+    }
+  }
+  for (int i=0; i<opBtns.length; i++) {
+    if (opBtns[i].hov) {
+      if (opBtns[i].op== "+") {
+        opVal = '+';
+        firstNum = false;
+      } else if (opBtns[i].op== "-") {
+        opVal = '-';
+        firstNum = false;
+      } else if (opBtns[i].op== "x") {
+        opVal = '*';
+        firstNum = false;
+      } else if (opBtns[i].op== "÷") {
+        opVal = '÷';
+        firstNum = false;
+      } else if (opBtns[i].op== "Clear") {
+        clearButton();
+      } else if (opBtns[i].op== "=") {
+        performCalc();
+      } else if (opBtns[i].op== "√") {
+        if (firstNum) {
+          leftVal = str(sqrt(float(leftVal)));
+          displayVal = leftVal;
+        } else {
+          rightVal = str(sqrt(float(rightVal)));
+          displayVal = rightVal;
+        }
+      } else if (opBtns[i].op== "^") {
+        if (firstNum) {
+          leftVal = str(sq(float(leftVal)));
+          displayVal = leftVal;
+        } else {
+          rightVal = str(sq(float(rightVal)));
+          displayVal = rightVal;
+        }
+      } else if (opBtns[i].op== "|") {
+        if (firstNum) {
+          leftVal = str(abs(float(leftVal)));
+          displayVal = leftVal;
+        } else {
+          rightVal = str(abs(float(rightVal)));
+          displayVal = rightVal;
+        }
+      } else if (opBtns[i].op== "⌉") {
+        if (firstNum) {
+          leftVal = str(ceil(float(leftVal)));
+          displayVal = leftVal;
+        } else {
+          rightVal = str(ceil(float(rightVal)));
+          displayVal = rightVal;
+        }
+      } else if (opBtns[i].op== "±") {
+        if (firstNum) {
+          leftVal = str(float(leftVal)* -1);
+          displayVal = leftVal;
+        } else {
+          rightVal = str(float(rightVal)* -1);
+          displayVal = rightVal;
+        }
+      } else if (opBtns[i].op== ".") {
+        if (!dec) {
+          if (firstNum) {
+            leftVal += opBtns[i].op;
+            displayVal = leftVal;
+            dec = true;
+          } else {
+            rightVal += opBtns[i].op; 
+            displayVal = rightVal;
+            dec = true;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+void performCalc() {
+  if (opVal == '+') {
+    result = float(leftVal) + float(rightVal); 
+    displayVal = str(result);
+  } else if (opVal == '-') {
+    result = float(leftVal) - float(rightVal); 
+    displayVal = str(result);
+  } else if (opVal == '*') {
+    result = float(leftVal) * float(rightVal); 
+    displayVal = str(result);
+  } else if (opVal == '÷') {
+    result = float(leftVal) / float(rightVal); 
+    displayVal = str(result);
+  }
+  //let = work multiple times
+  leftVal = displayVal;
+  firstNum = true;
+  dec = false;
+}
+
+void clearButton() {
+  displayVal = "";
+  leftVal = "";
+  rightVal = "" ;
+  opVal  = ' ';
+  result = 0.0;
+  firstNum = true;
+}
+
+void handleKeyPress(boolean num, String val) {
+  if (num) {
+    if (firstNum) {
+      leftVal += val;
+      displayVal = leftVal;
+    } else {
+      rightVal += val;
+      displayVal = rightVal;
+    }
+  } else {
+    if (val == "+") {
+      opVal = '+';
+      firstNum = false;
+      dec = false;
+    } else if (val == "-") {
+      opVal = '-';
+      firstNum = false;
+      dec = false;
+    } else if (val == "x") {
+      opVal = 'x';
+      firstNum = false;
+      dec = false;
+    } else if (val == "/") {
+      opVal = '/';
+      firstNum = false;
+      dec = false;
+    }
+  }
+}
+
+void keyPressed() {
+  if (key == '1') {
+    handleKeyPress(true, "1");
+  }
+  if (key == '2') {
+    handleKeyPress(true, "2");
+  }
+  if (key == '3') {
+    handleKeyPress(true, "3");
+  }
+  if (key == '4') {
+    handleKeyPress(true, "4");
+  }
+  if (key == '5') {
+    handleKeyPress(true, "5");
+  }
+  if (key == '6') {
+    handleKeyPress(true, "6");
+  }
+  if (key == '7') {
+    handleKeyPress(true, "7");
+  }
+  if (key == '8') {
+    handleKeyPress(true, "8");
+  }
+  if (key == '9') {
+    handleKeyPress(true, "9");
+  }
+  if (key == '0') {
+    handleKeyPress(true, "0");
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class Button {
+
+  //Member Variables
+  int x, y, w, h, v;
+  String op;
+  color bgc, bgt;
+  boolean hov, num;
+
+  // Multiple Constructor
+  Button(int x, int y, int w, int h, color bgc, color bgt) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+
+    this.bgc = bgc;
+    this.bgt = bgt;
+    hov = false;
+  }
+
+  Button asNumber(int v) {
+    this.v = v;
+    num = true;
+    return this;
+  }
+
+  Button asOperator(String op) {
+    this.op = op;
+    num = false;
+    return this;
+  }
+
+  // Display Method
+  void display() {
+    if (num) {
+      fill(bgc);
+      rectMode(CENTER);
+      if (hov) {
+        fill(150);
+      } else {
+        fill(bgc);
+      }
+      rect(x, y, w, h, 5);
+      textAlign(CENTER, CENTER);
+      fill(bgt);
+      text(v, x, y);
+      textSize(26);
+    } else {
+      fill(bgc);
+      rectMode(CENTER);
+      rect(x, y, w, h, 5);
+      textAlign(CENTER, CENTER);
+      fill(bgt);
+      text(op, x, y);
+      textSize(26);
+    }
+  }
+
+
+  // Hover Method
+  void hover() {
+    hov = mouseX > x-w/2 && mouseX < x+w/2 && mouseY > y-h/2 && mouseY < y+h/2;
+  }
+}
