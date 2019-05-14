@@ -1,1 +1,395 @@
+// SpaceShooter
+// December 03, 2018
+// By Mason Rasmussen
+// TODO:
+Table tResults;
+TableRow tr1;
 
+
+
+ArrayList<Rock> rocks;
+ArrayList<Laser> lasers;
+Timer timer;
+Timer puTimer;
+Timer ticTimer;
+SpaceShip s1;
+int totalRocks = 0;
+int health = 100;
+int pass = 0;
+int rockRate = 1000;
+int level = 1;
+int rockCount = 0;
+int laserCount = 0;
+int score = 0; 
+boolean ticker = false;
+boolean play = false;
+String ticText;
+String name = "Mason";
+//import processing.sound.*;
+//SoundFile laser;
+//SoundFile explosion;
+
+void setup() {
+  size(1000, 1000);
+  tResults = loadTable("results.csv", "header");
+  rocks = new ArrayList<Rock>();
+  lasers = new ArrayList();
+  s1 = new SpaceShip(50);
+  timer = new Timer(rockRate);
+  ticTimer = new Timer(2000);
+  timer.start();
+  // Load a soundfile from the /data folder of the sketch and play it back
+  //laser = new SoundFile(this, "laser.wav");
+  //laser.play();
+  //explosion = new SoundFile(this, "AsteroidExplosion.wav");
+  //explosion.play();
+}
+
+void draw() {
+  background(#7CC8E3);
+  noCursor();
+
+  if (!play) {
+    startScreen();
+  } else if (play) {
+
+    // Level Handling
+    if (frameCount % 1000 == 10) {
+      level++;
+      ticText = "Level: " + level;
+      //ticker();
+      rockRate-=50;
+      timer.totalTime = rockRate;
+    }
+
+
+    // Display Ship
+    s1.display(mouseX, mouseY);
+    updateDisplay();
+
+    // Add rocks based on timer
+    if (timer.isFinished()) {
+      if (random(101)>10) {
+        rocks.add(new Rock(int(random(width)), -20, false));
+      } else {
+        rocks.add(new Rock(int(random(width)), -20, true));
+      }
+      rockCount++;
+      totalRocks++;
+      timer.start();
+    }
+
+    // Add Collision Detection Here !!!
+    for (int i = rocks.size()-1; i>=0; i--) {
+      Rock rock = (Rock) rocks.get(i);
+      rock.move();
+      rock.display();
+      if (rock.reachedBottom()) {
+        pass++;
+        rocks.remove(rock);
+      }
+      for (Laser l : lasers) {
+        if (dist(l.x, l.y, rock.x, rock.y) < rock.r) {
+          rock.health-=1;
+        }
+        if (rock.health<10) {
+          rocks.remove(rock);
+          score+=rock.r;
+        }
+      }
+      if (dist(s1.x, s1.y, rock.x, rock.y) < s1.r) {
+        if (rock.isPU) {
+          health+=10;
+          rocks.remove(rock);
+        } else {
+          rocks.remove(rock);
+          health-=rock.r;
+        }
+      }
+    }
+
+    // Display and Dispose Lasers
+    for (int i = lasers.size()-1; i>=0; i--) {
+      Laser laser = (Laser) lasers.get(i);
+      laser.fire();
+      laser.display();
+      if (laser.reachedTop()) {
+        lasers.remove(laser);
+      }
+    }
+    if (ticker) {
+      if (!ticTimer.isFinished()) {
+        fill(255, 127);
+        textSize(44);
+        textAlign(CENTER);
+        text(ticText, width/2, height/2);
+      } else if (!ticTimer.isFinished() && health < 30) {
+        fill(255, 127);
+        textSize(44);
+        textAlign(CENTER);
+        text(ticText, width/2, height/2);
+      }
+    }
+
+    if (health<1 || pass>10) {
+      play = false;
+      gameOver();
+    } else {
+      play = true;
+    }
+  }
+}
+
+
+
+
+void startScreen() {
+  background(#7CC8E3);
+  textAlign(CENTER);
+  text("Hello! Are You Ready To Begin?", width/2, height/2, (0));
+  text("Tap any button to continue...", width/2, height/2+20, (0));
+  tResults.sort("SCORE");
+  tr1 = tResults.getRow(tResults.getRowCount()-1);
+  text("High Score: " + tr1.getString("SCORE") + "by: " + tr1.getString("NAME"), width/2, height/2+40);
+  if (keyPressed) {
+    play = true;
+  }
+}
+
+
+
+void gameOver() {
+  background(0);
+  textAlign(CENTER);
+  fill(222);
+  text("Game Over!", width/2, height/2);
+  text("Final Score:" + score, width/2, height/2+20);
+  text("You made it to level " + level, width/2, height/2+40);
+  text("Targets: " + rockCount, width/2, height/2+80);
+  text("Health: " + health, width/2, height/2+100);
+  text("Targets Passed: " + pass, width/2, height/2+120);
+  TableRow newRow = tResults.addRow();
+  newRow.setString("NAME", name);
+  newRow.setString("SCORE", str(score));
+  newRow.setString("LEVEL", str(level));
+   newRow.setString("ROCKS", str(rockCount));
+  newRow.setString("HEALTH", str(health));
+  newRow.setString("PASS", str(pass));
+  saveTable(tResults, "data/results.csv");
+  
+  tResults.sort("SCORE");
+  tr1 = tResults.getRow(tResults.getRowCount()-1);
+  text("High Score: " + tr1.getString("SCORE"), width/2, height/2+140);
+  noLoop();
+}
+
+void ticker() {
+  ticTimer.start();
+  ticker = true;
+  if(ticTimer.isFinished()) {
+    ticker = false;
+  }
+}
+
+void mouseReleased() {
+  lasers.add(new Laser(s1.x, s1.y));
+  laserCount++;
+}
+
+void keyPressed() {
+  if (key == ' ') {
+    lasers.add(new Laser(mouseX, mouseY));
+    //laser.play();
+    //explosion.play();
+  }
+}
+
+
+
+void updateDisplay() {
+  fill(255, 127);
+  textSize(20);
+  rect(0, 0, width, 80);
+  text("Score: " + score, 60, 50, (255));
+  text("Health: " + health, 200, 50, height-30);
+  text("Level: " + level, 340, 50);
+  if (health<20) {
+    fill (255, 0, 0);
+  } else {
+    fill(122);
+  }
+  text("Pass: " + pass, 480, 50);
+} 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class Laser {
+  int fx, fy; // start fire pos
+  int x, y; // updated fire pos
+  float speed;
+  color c;
+  float r;
+  
+  Laser(int x, int y) {
+    r=4;
+    this.x = x;
+    this.y = y;
+    speed = random(5, 22);
+    c = color(255, 0, 0);
+  }
+
+  void fire() {
+    y -= speed;
+  }
+
+  boolean reachedTop() {
+    if (y<0-50) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void display() {
+    fill(c+y/2);
+    noStroke();
+    for (int i = 2; i < r; i++) {
+      rect(x, y-2, r, 8);
+    }
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class Rock {
+  int x, y;
+  int speed;
+  color c;
+  int r;
+  int health;
+  boolean isPU;
+
+  Rock(int x, int y, boolean isPU) {
+    r = int(random(15,55));
+    this.x = x;
+    this.y = y;
+    this.isPU = isPU;
+    health = r;
+    speed = int(random(1, 4));
+    c = color(random(255), random(255), random(255));
+  }
+
+  void move() {
+    y+= speed;
+  }
+
+  boolean reachedBottom() {
+    if (y> height + r*4) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void display() {
+    if (isPU) {
+      fill(255, 33, 33);
+    } else {
+      if (health<10) {
+        fill(255,255,0);
+      } else {
+        fill(c-health);
+      }
+    }
+    
+    noStroke();
+   ellipse(x, y, health, health);
+    fill(255);
+    textSize(9);
+    textAlign(CENTER);
+    if (isPU) {
+      text("PU", x, y+5);
+    } else {
+      text(health,x,y+5);
+    }
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class SpaceShip {
+  int r;
+  color c1;
+  int x, y;
+
+
+  SpaceShip(int r) {
+    this.r = r;
+    this.c1 = color(50, 10, 10, 150);
+    x = 0;
+    y = 0; 
+  }
+
+
+
+
+  // Display Method
+  void display(int x, int y) {
+    rectMode(CORNER);
+
+
+
+    // draw gun right
+    rect(x+15, y+5, 10, 20);
+
+    // draw gun left
+    rect(x-25, y+5, 10, 20);
+
+
+    // draw wings
+    fill(0, 0, 200);
+    triangle(x, y, x+60, y+45, x, y+40);
+    triangle(x, y, x-60, y+45, x, y+40);
+
+
+    // draw hull
+    fill(200, 12, 48);
+    rect(x-10, y-30, 20, 80);
+
+    // draw top of ship
+    fill(200, 12, 48);
+    triangle(x-10, y-30, x+10, y-30, x, y-60);
+
+    //draw cockpit
+    fill(38, 38, 38);
+    ellipse(x, y-30, 10, 20);
+
+    // draw rocket
+    rect(x-10, y+30, 20, 20);
+  }
+
+  // Behavior Methods
+  void thrust() {
+  }
+
+  void fire() {
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class Timer {
+
+  int savedTime; 
+  int totalTime;
+
+  Timer(int t) {
+    this.totalTime = t;
+  }
+
+  void start() {
+    savedTime = millis();
+  }
+
+  boolean isFinished() { 
+    int passedTime = millis()- savedTime;
+    if (passedTime > totalTime) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
